@@ -1,0 +1,293 @@
+<aura:component controller="ShowPropertyRentsController" implements="force:hasSObjectName,lightning:availableForFlowScreens,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="listOfSearchRecords" type="Sobject[]" description="Use,for store the list of search records which returns from apex class"/>
+    <aura:handler name="transactionsForManualMapping" event="c:SetTransactionsForManualMapping" action="{!c.mapRentWithTransactions}"/>
+    <aura:attribute name="Message" type="String" default=""/>
+    <aura:attribute name="getMonth" type="Integer"/>
+    <aura:attribute name="months" type="object[]" />
+    <aura:attribute name="selectedRentId" type="String" default=""/>
+    <aura:attribute name="selectedRentBuildingBankAccount" type="String" default=""/>
+    <aura:attribute name="isOpen" type="boolean" default="false"/>
+    <aura:attribute name="lengthOfSelectedTransaction" type="integer" default="0"/>
+    <aura:handler name="init" value="{!this}" action="{!c.showRents}"/>
+    <aura:attribute name="mappedRentWithTransactionParent" type="Map" default="{}"/>
+    <aura:attribute name="rentDetails" type="RentDetailsWrapper[]" />
+    <aura:attribute name="particularRentDetail" type="RentDetailsWrapper" />
+    <aura:attribute name="isTransactionAmountValidated" type="Boolean" default="true"/>
+    <aura:attribute name="isOpenLinkedTransactionModal" type="boolean" default="false"/>
+    <aura:attribute name="linkedTransactions" type="HBX_Accounting__c[]" />
+    <aura:attribute name="rentTypeFilter" type="String" default="All"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="true"/>
+    <aura:attribute name="showEntryies" type="Integer" default="5"/>
+    <!--<aura:attribute name="paginationRentDetails" type="RentDetailsWrapper[]" />-->
+    <aura:if isTrue="{!v.showSpinner}">
+    	<lightning:spinner variant="brand"  size="large" />
+    </aura:if>
+    
+    <table class="slds-table slds-table_bordered  slds-no-row-hover">
+    	<tr>
+          	<!--<td style="width:25%">
+            	<div class="slds-form-element__control">
+                    <div class="slds-input-has-icon slds-input-has-icon-right">
+                        <lightning:select name="SelectMonth" label="Select Rent Month" value="{!v.getMonth}" onchange="{!c.onMonthChange}">
+                            <aura:iteration items="{!v.months}" var="mnth">
+                                <option value="{!mnth.monthNumber}">{!mnth.monthName}</option>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                </div>
+            </td>-->
+            <td style="width:25%">
+                <lightning:select name="SelectMonth" label="Show Entries" value="{!v.showEntryies}" onchange="{!c.showRents}"> <!--aura:id="select" onchange="{!c.onSelectChange}"-->
+                    <option value="0">All</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </lightning:select>
+           </td>
+            <td style="width:25%">
+                <div class="slds-form-element__control">
+                    <div class="slds-input-has-icon slds-input-has-icon-right">
+                        <lightning:select name="SelectMonth" label="Select Filter Type" value="{!v.rentTypeFilter}" onchange="{!c.rentTypeFilterChange}">
+                            <option value="All">All</option>
+                            <option value="Partial matched Rents">Partial matched Rents</option>
+                            <option value="Total matched Rents">Total matched Rents</option>
+                            <option value="Not matched Rents">Not matched Rents</option>
+                        </lightning:select>
+                    </div>
+                </div>
+            </td>
+            <td>
+            	
+            </td>
+        </tr>
+    </table>
+    
+    <aura:if isTrue="{!v.rentDetails.length>0}">
+            <div class="slds-scrollable" style="height: 25rem;width : 100%">
+                <div class="slds-text-longform">
+                    <div class="slds-m-around--medium">
+                        <table class="slds-table slds-table_bordered  slds-no-row-hover">
+                            <thead>
+                                <tr class="slds-text-title_caps">
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Rent Name">Invoice Name</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Account Name">Account Name</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Account Name">Address</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Amount">Amount</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Remaining Amount">Remaining Amount</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Credit Amount">Credit Amount</div>
+                                    </th>
+                                    <th>
+                                        <div class="slds-truncate" title="Amount"></div>
+                                    </th>
+                                    <th>
+                                        <div class="slds-truncate" title="Amount"></div>
+                                    </th>
+                                </tr>
+                            </thead>  
+                            
+                            <tbody> 
+                                <aura:iteration items="{!v.rentDetails}" var="rentDetail">
+                                    <tr  class="slds-grid--vertical-align-top ">
+                                        <td scope="row" data-label="Opportunity Name" >
+                                            <div class="slds-truncate" title="Cloudhub" ><a id="{!rentDetail.rent.Id}" onclick="{!c.navigateToRent}">{!rentDetail.rent.Name}</a></div>
+                                        </td>
+                                        <td data-label="Account Name" style="padding-top:0px">
+                                            <div class="slds-truncate" title="Cloudhub" >{!rentDetail.accountName}</div>
+                                        </td>
+                                         <td data-label="Account Name" style="padding-top:0px">
+                                            <div class="slds-truncate" title="Cloudhub" >{!rentDetail.rent.HBX_ContractName__r.HBX_UnitAddress__c}</div>
+                                        </td>
+                                        <td data-label="Account Name" style="padding-top:0px">
+                                            <div class="slds-truncate" title="Cloudhub" >
+                                            	<ui:outputCurrency aura:id="curr" value="{!rentDetail.rent.HBX_InvoiceAmountGross__c}" format="€##,##,###,###.00"/>
+                                            </div>
+                                        </td>
+                                        <td data-label="Account Name" style="padding-top:0px">
+                                            <aura:if isTrue="{!lessthan(rentDetail.remainingAmount,0)}">
+                                            	<div class="slds-truncate" title="remainingAmount" >
+                                                    <ui:outputCurrency aura:id="curr" value="{!rentDetail.remainingAmount}" format="€##,##,###,###.00"/>
+                                                </div>
+                                                <aura:set attribute="else">
+                                                	<aura:if isTrue="{!rentDetail.remainingAmount>=0}">
+                                                    	<div class="slds-truncate" title="remainingAmount" >
+                                                        <ui:outputCurrency aura:id="curr" value="0" format="€##,##,###,###.00"/>
+                                                    </div>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </td>
+                                        <td data-label="Account Name" style="padding-top:0px">
+                                            <aura:if isTrue="{!rentDetail.remainingAmount>0}">
+                                            		<!--<div class="slds-truncate" title="Cloudhub" >{!rentDetail.rent.HBX_Credit__c}</div>-->
+                                                <ui:outputCurrency aura:id="curr" value="{!rentDetail.remainingAmount}" format="€##,##,###,###.00"/>
+                                                
+                                            </aura:if>
+                                        </td>
+                                        <td>
+                                            <aura:if isTrue="{!rentDetail.otherPortfolioRecordsToShow}">
+                                            	<lightning:button label="{!rentDetail.rent.Id}" name="{!rentDetail.rent.HBX_ContractName__r.HBX_Building__r.HBX_BankAccount__c}" title="Add Transaction" onclick="{!c.showModal}"><lightning:icon iconName="utility:add" size="x-small" alternativeText="icon"/></lightning:button>
+                                                <aura:set attribute="else">
+                                                   <lightning:button disabled="true" label="{!rentDetail.rent.Id}" name="{!rentDetail.rent.HBX_ContractName__r.HBX_Building__r.HBX_BankAccount__c}" title="Add Transaction" onclick="{!c.showModal}"><lightning:icon iconName="utility:close" size="x-small" alternativeText="icon"/></lightning:button>
+                                                </aura:set>
+                                            </aura:if>
+                                            <!--<c:ShowBankTransaction relatedRentId="{!rent.Id}" mappedRentWithTransaction="{!v.mappedRentWithTransactionParent}" lengthOfTransactionMap="{!v.lengthOfTransactionMapParent}" getMonth="{!v.getMonth}"/>-->
+                                        </td>
+                                        <td>
+                                        	<a href="javascript:void(0)" id="{!rentDetail.rent.Id}" onclick="{!c.showLinkedTransactions}">Current Month Linked Transactions</a>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <!--</lightning:card>-->
+        <aura:set attribute="else">
+            {!v.Message}
+        </aura:set>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.isOpenLinkedTransactionModal}">
+        <div class="demo-only " >
+          <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="width:100%;max-width: 60rem"> 
+              <header class="slds-modal__header">
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{!c.closeLinkedTransactions}">
+                  <lightning:icon iconName="utility:close"   size="small" />
+                </button>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Current Month Linked Transactions</h2>
+              </header>  
+              <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                  <aura:if isTrue="{!v.linkedTransactions}">
+                      <table class="slds-table   slds-no-row-hover">
+                          <thead>
+                              <tr class="slds-text-title_caps">
+                                  <th scope="col">
+                                      <div class="slds-truncate" title="Rent Name">Transaction Name</div>
+                                  </th>
+                                  <th scope="col">
+                                      <div class="slds-truncate" title="Account Name">Total Amount</div>
+                                  </th>
+                                  <th scope="col">
+                                      <div class="slds-truncate" title="Account Name">Total Linked Amount</div>
+                                  </th>
+                              </tr>
+                          </thead>  
+                          
+                          <tbody> 
+                              <aura:iteration items="{!v.linkedTransactions}" var="transactionDetail">
+                                  <tr  class="slds-grid--vertical-align-top ">
+                                      <td scope="row" data-label="Opportunity Name" >
+                                          <div class="slds-truncate" title="Cloudhub" ><a id="{!transactionDetail.HBX_BankTransaction__c}" onclick="{!c.navigateToRent}">{!transactionDetail.HBX_BankTransaction__r.Name}</a></div>
+                                      </td>
+                                      <td data-label="Account Name" style="padding-top:0px">
+                                          <div class="slds-truncate" title="Cloudhub" >
+                                          		<ui:outputCurrency aura:id="curr" value="{!transactionDetail.HBX_BankTransaction__r.HBX_Amount__c}" format="€##,##,###,###.00"/>
+                                          </div>
+                                      </td>
+                                      <td data-label="Account Name" style="padding-top:0px">
+                                          <div class="slds-truncate" title="Cloudhub" >
+                                          		<ui:outputCurrency aura:id="curr" value="{!transactionDetail.HBX_PaidAmount__c}" format="€##,##,###,###.00"/>
+                                          </div>
+                                      </td>
+                                  </tr>
+                              </aura:iteration>
+                          </tbody>
+                      </table>
+                      <aura:set attribute="else">
+                          No Linked Transaction Found.
+                      </aura:set>
+                  </aura:if>
+              </div>
+              <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_brand" disabled="false" onclick="{!c.closeLinkedTransactions}">Cancel</button>
+              </footer>
+            </div>
+          </section>
+          <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.isOpen}">
+        <div class="demo-only " >
+          <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="width:100%;max-width: 60rem"> 
+              <header class="slds-modal__header">
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{!c.closeModal}">
+                  <lightning:icon iconName="utility:close"   size="small" />
+                </button>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Select Transaction</h2>
+              </header>
+              <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                  <table class="slds-table  slds-no-row-hover">
+                      <thead>
+                          <tr class="slds-text-title_caps">
+                              <th scope="col">
+                                  <div class="slds-truncate" title="Rent Name">Rent Name</div>
+                              </th>
+                              <th scope="col">
+                                  <div class="slds-truncate" title="Rent Name">Account Name</div>
+                              </th>
+                              <th scope="col">
+                                  <div class="slds-truncate" title="Rent Name">Address</div>
+                              </th>
+                              <th scope="col">
+                                  <div class="slds-truncate" title="Rent Name">Total Rent Amount</div>
+                              </th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr class="slds-text-title_caps">
+                              <td scope="col">
+                                  <div class="slds-truncate" title="Rent Name">{!v.particularRentDetail.rent.Name}</div>
+                              </td>
+                              <td scope="col">
+                                  <div class="slds-truncate" title="Rent Name">{!v.particularRentDetail.accountName}</div>
+                              </td>
+                              <td scope="col">
+                                  <div class="slds-truncate" title="Rent Name">{!v.particularRentDetail.rent.HBX_ContractName__r.HBX_UnitAddress__c}</div>
+                              </td>
+                              <td scope="col">
+                                  <div class="slds-truncate" title="Rent Name">
+                                  		<ui:outputCurrency aura:id="curr" value="{!v.particularRentDetail.rent.HBX_InvoiceAmountGross__c}" format="€##,##,###,###.00"/>
+                                  </div>
+                              </td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  <c:ShowBankTransaction RemainingAmount="{!v.particularRentDetail.remainingAmount}" relatedRentId="{!v.selectedRentId}" isTransactionAmountValidated="{!v.isTransactionAmountValidated}" linkedRentBuildingBankAccoutn="{!v.selectedRentBuildingBankAccount}"/>
+              </div>
+              <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_neutral" onclick="{!c.closeModal}">Cancel</button>
+                  <aura:if isTrue="{!v.lengthOfSelectedTransaction>0}">
+                      <aura:if isTrue="{!v.isTransactionAmountValidated}">
+                      	  <button class="slds-button slds-button_brand" disabled="false" onclick="{!c.createAccounting}">Map Transactions</button>
+                          <aura:set attribute="else">
+                              <button class="slds-button slds-button_brand" disabled="true" onclick="{!c.createAccounting}">Map Transactions</button>
+                          </aura:set>
+                      </aura:if>
+                      <aura:set attribute="else">
+                          <button class="slds-button slds-button_brand" disabled="true" onclick="{!c.createAccounting}">Map Transactions</button>
+                      </aura:set>
+                  </aura:if>
+              </footer>
+            </div>
+          </section>
+          <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </aura:if>
+</aura:component>

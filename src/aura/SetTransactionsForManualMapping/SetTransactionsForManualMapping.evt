@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="Event template" >
+
+	<aura:attribute name="rentId" type="String" default=""/>
+    <aura:attribute name="transactionDetail" type="Object[]" default="[]"/>
+    <aura:attribute name="deleteKey" type="Boolean" />
+</aura:event>

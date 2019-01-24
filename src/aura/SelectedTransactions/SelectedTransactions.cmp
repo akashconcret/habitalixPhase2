@@ -1,0 +1,4 @@
+<aura:component>
+    <aura:attribute name="SelectedTransaction" type="object[]"/>
+    <lightning:pill label="With both remove and click handlers" name="" onremove="{! c.handleRemove }"/>
+</aura:component>

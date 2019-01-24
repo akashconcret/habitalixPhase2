@@ -1,0 +1,82 @@
+<aura:component controller="PaymentMatchingCriteriaController">
+    <aura:attribute name="showAllFields" type="PaymentMatchingCriteriaControllerWrapper"/>
+    <aura:attribute name="disabledAddButton" type="Boolean" default="true"/>
+    <aura:attribute name="rowNumber" type="Integer" default="0"/>
+    <aura:attribute name="disabledRemoveButton" type="Boolean" default="false"/>
+    <aura:attribute name="TotlFilterRows" type="Integer[]" default="[1]"/>
+    <aura:attribute name="transactionField" type="String" default=""/>
+    <aura:attribute name="RentField" type="String" default=""/>
+    <aura:attribute name="Operator" type="String" default=""/>
+    <aura:registerEvent name="callSave" type="c:PaymentMatchingCriteriaEvent" />
+    <aura:attribute name="filtersInOBJECT" type="Object[]"/>
+    <aura:attribute name="AllSetToSave" type="Boolean" default = "false"/>
+    <aura:attribute name="filterLogic" type="String" default = ""/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <aura:attribute name="OperatorAsPerFieldType" type="Map" default="{}"/>
+    <aura:attribute name="operatorPerDataType" type="String[]" default="[]"/>
+    <aura:attribute name="rentFieldAsPerTransaction" type="Object[]" default="[]"/>
+    
+    <ul>
+        <li>
+            <div class="slds-grid slds-gutters ">
+                <div class="slds-col slds-size_1-of-12 " >
+                    {!v.rowNumber}
+                </div>
+                <div class="slds-col slds-size_3-of-12">
+                    <ui:inputSelect label="Transaction Fields" class="slds-select slds-input"  aura:id="SelectTransaction" value="{!v.transactionField}" change="{!c.onchange}">
+                        <ui:inputSelectOption label="choose one..." text="choose one..." disabled="true"></ui:inputSelectOption>
+                        <aura:iteration items="{!v.showAllFields.transactionFields}" var="trans">
+                            <ui:inputSelectOption label="{!trans.label}" text="{!trans.field}"></ui:inputSelectOption>
+                        </aura:iteration>
+                    </ui:inputSelect>
+                </div>
+                <div class="slds-col slds-size_3-of-12">
+                    <ui:inputSelect label="Operator" disabled="{!v.transactionField=='choose one...'}" class="slds-select slds-input"  aura:id="SelectOperator" value="{!v.Operator}" change="{!c.onchange}">
+                        <ui:inputSelectOption value="choose one..." disabled="true" text="choose one..."></ui:inputSelectOption>
+                        <!--<ui:inputSelectOption label="equals" text="equals"/>
+                        <ui:inputSelectOption label="not equals to" text="not equals to"/>-->
+                        <aura:iteration items="{!v.operatorPerDataType}" var="op">
+                        	<ui:inputSelectOption label="{!op}" text="{!op}"/>
+                        </aura:iteration>
+                    </ui:inputSelect>
+                </div>
+                <div class="slds-col slds-size_3-of-12">
+                    <ui:inputSelect label="Rent Fields" disabled="{!v.transactionField=='choose one...'}" class="slds-select slds-input"  aura:id="SelectRent" value="{!v.RentField}" change="{!c.onchange}">
+                        <ui:inputSelectOption label="choose one..." text="choose one..." disabled="true"></ui:inputSelectOption>
+                        <aura:iteration items="{!v.rentFieldAsPerTransaction}" var="trans">
+                            <ui:inputSelectOption label="{!trans.label}" text="{!trans.field}"></ui:inputSelectOption>
+                        </aura:iteration>
+                    </ui:inputSelect>
+                </div>
+                <div class="slds-col slds-size_3-of-12">
+                    <br></br> 
+                    <aura:if isTrue="{!v.filtersInOBJECT.length>0}">
+                        <lightning:button variant="Neutral" name="{!v.rowNumber}" disabled="{!v.disabledRemoveButton}" label="X"  title="Base action" onclick="{!c.removeFilter}"/> 
+                    </aura:if>
+                    <lightning:button variant="Neutral" name="{!v.rowNumber}" disabled="{!v.disabledAddButton}" label="+" aura:id="AddButton" onclick="{!c.AddFilterRow}"/>
+                </div>
+            </div>        	
+        </li>
+        <li class="paddingTop"></li>
+        <li>
+            <aura:if isTrue="{!v.filtersInOBJECT.length == v.rowNumber}">
+                <div class="slds-grid slds-gutters ">
+                    <div class="slds-col slds-size--1-of-12"></div>
+                    <div class="slds-col floatLeft slds-size--4-of-12" >
+                        <ui:inputText class="slds-input" value="{!v.filterLogic}" placeholder="Matching Logic : "/>
+                    </div>
+                    <div class="slds-col floatRight slds-size--1-of-12"/>
+                    <div class="slds-col floatRight slds-size--1-of-12"/>
+                    <div class="slds-col floatRight slds-size--1-of-12"/>
+                    <div class="floatRight slds-size--1-of-12"/>
+                    <div class="floatRight slds-size--1-of-12"/>
+                    
+                    <div class="slds-col floatRight slds-size--2-of-12">
+                        <lightning:button class="slds-button" variant="Neutral" disabled="{!v.AllSetToSave}" label="Save Payment Criteria"  title="Save Payment Matching Criteria" onclick="{!c.save}"/>
+                    </div>
+                </div>
+            </aura:if>
+        </li>
+    </ul>
+</aura:component>

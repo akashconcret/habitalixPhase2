@@ -1,0 +1,72 @@
+<aura:component controller ="BalanceSheetController" implements="force:hasSObjectName,lightning:availableForFlowScreens,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="Accounting" type="BalanceSheetControllerWrapper[]"/>
+     <aura:attribute name="getMonth" type="Integer"/>
+     <aura:attribute name="months" type="object[]" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="showEntry" type="Integer" default="50"/>
+    
+    
+    <div class="slds-page-header slds-float_left slda_font_class" role="banner">
+        <td style="width:40%">
+            <lightning:select name="SelectMonth" label="Select Rent Month" value="{!v.getMonth}" onchange="{!c.onMonthChange}">
+                <aura:iteration items="{!v.months}" var="mnth">
+                    <option value="{!mnth.monthNumber}">{!mnth.monthName}</option>
+                </aura:iteration>
+            </lightning:select>
+        </td>
+    </div>
+                
+            
+    <div class="slds-page-header slds-float_right slda_font_class" role="banner">
+        <td style="width:40%">
+            <lightning:select aura:id="select" name="select" label="Display Record" value="{!v.showEntry}" onchange="{! c.recordSize }">
+                <option value="50">choose one...</option>
+                <option value="5">5</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </lightning:select> 
+        </td>
+    </div>
+
+    <table class="slds-table slds-table_bordered  slds-no-row-hover">
+        <thead>
+            <tr class="slds-text-title_caps">
+                <th scope="col">
+                    <div class="slds-truncate" title="Rent Name">Unit</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="Transaction Name">Total Gross Rent</div>
+                </th>
+                 <th scope="col">
+                    <div class="slds-truncate" title="Sum of Amount">Total Income</div>
+                </th>
+                 <th scope="col">
+                    <div class="slds-truncate" title="Sum of Amount">Credit Current Month</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <aura:if isTrue="{!v.Accounting.length>0}">
+                <aura:iteration items="{!v.Accounting}" var="acc">    
+                    <tr>
+                        <th scope="row" data-label="Rent Name">
+                            <div class="slds-truncate">{!acc.rent.Name}</div>
+                        </th>
+                        <th scope="row" data-label="Transaction Amount">
+                            <div class="slds-truncate">{!acc.rentPayedAmount}</div>
+                        </th>
+                        <th>
+                            <div class="slds-truncate">{!acc.totalAmount}</div>
+                        </th>
+                        <th>
+                            <div class="slds-truncate">{!(acc.totalAmount - acc.rentPayedAmount)}</div>
+                        </th>
+                    </tr>
+                </aura:iteration>
+            </aura:if>
+        </tbody>
+    </table>
+    <aura:if isTrue="{!v.Accounting.length==0}">
+    	<div>No Record Found</div>
+    </aura:if>
+</aura:component>

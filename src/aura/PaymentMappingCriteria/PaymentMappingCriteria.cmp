@@ -1,0 +1,26 @@
+<aura:component controller="PaymentMatchingCriteriaController"  implements="force:hasSObjectName,lightning:availableForFlowScreens,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,forceCommunity:availableForAllPageTypes">
+	<aura:attribute name="TotlFilterRows" type="Integer[]" default="[1]"/>
+    <aura:attribute name="AllFilters" type="Object[]" default="[{}]"/>
+    <aura:attribute name="disabledRemoveButton" type="Boolean" default="false"/>
+    <aura:attribute name="allSet" type="Boolean" default="true"/>
+    <aura:handler name="init" value="{!this}" action="{!c.getAllFields}" />
+    <aura:attribute name="showAllFields" type="PaymentMatchingCriteriaControllerWrapper"/>
+    <aura:handler name="callSave" event="c:PaymentMatchingCriteriaEvent" action="{!c.save}"/>
+    
+    <aura:attribute name="AllSetToSave" type="Boolean" default = "false"/>
+    <aura:attribute name="filterLogic" type="String" default = ""/>
+    
+    <div class="slds-grid slds-gutters">
+      <div class="slds-col slds-size--11-of-12">
+        	<aura:if isTrue="{!v.AllFilters.length>0}">
+                <aura:iteration items="{!v.AllFilters}" var="item" indexVar="sequenceNO" >
+                    <c:FilterRow aura:id="comp" filterLogic="{!v.filterLogic}" AllSetToSave="{!v.AllSetToSave}" showAllFields="{!v.showAllFields}" filtersInOBJECT="{!v.AllFilters}" rowNumber="{!sequenceNO+1}" TotlFilterRows="{!v.TotlFilterRows}" disabledRemoveButton="{!v.disabledRemoveButton}"/>
+                </aura:iteration>
+                
+                
+          </aura:if>
+      </div>
+      <div class="slds-col slds-size--1-of-12">
+      </div>
+    </div>
+</aura:component>

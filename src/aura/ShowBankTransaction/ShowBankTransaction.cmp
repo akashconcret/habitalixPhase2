@@ -1,0 +1,123 @@
+<aura:component controller="ShowPropertyRentsController" implements="force:hasSObjectName,lightning:availableForFlowScreens,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="listOfTransactions" type="TransactionDetailsWrapper[]"/>
+    <aura:attribute name="SearchKeyWordForTransaction" type="string"/>
+    <aura:attribute name="MessageForTransactions" type="String" default=""/>
+    <aura:attribute name="relatedRentId" type="String" default=""/>
+    <aura:attribute name="RemainingAmount" type="Currency"/>
+    <aura:attribute name="lengthOfTransactionMap" type="integer"/>
+    <aura:attribute name="numberOfrecords" type="integer" default="5"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> 
+    <aura:attribute name="months" type="object[]" />
+    <aura:registerEvent name="transactionsForManualMapping" type="c:SetTransactionsForManualMapping"/>
+    <aura:attribute name="getMonth" type="Integer" />
+    <aura:attribute name="lstSelectedRecords" type="object[]" default="[]"/> 
+    <aura:attribute name="isTransactionAmountValidated" type="Boolean" default="true"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="true"/>
+    <aura:attribute name="linkedRentBuildingBankAccoutn" type="String" default=""/>
+
+    <aura:if isTrue="{!v.showSpinner}">
+        <lightning:spinner variant="brand"  size="large" />
+    </aura:if>
+    
+    <table class="slds-table slds-table_bordered  slds-no-row-hover">
+        <thead>
+            <tr>
+                <td style="width:25%">
+                    <lightning:select name="SelectMonth" label="Show Entries" value="{!v.numberOfrecords}" onchange="{!c.OnNumberOfRecordsChange}">
+                        <option value="0">All</option>
+                        <option value="5" selected="true">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </lightning:select>
+                </td>
+                
+                <td style="width:25%">
+                    <!--<div class="slds-form-element__control">
+                    <div class="slds-input-has-icon slds-input-has-icon-right">
+                        <lightning:select name="SelectMonth" label="Select Transaction Month" value="{!v.getMonth}" onchange="{!c.onMonthChange}">
+                            <aura:iteration items="{!v.months}" var="mnth">
+                                <option value="{!mnth.monthNumber}">{!mnth.monthName}</option>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                </div>-->
+                </td>
+                
+                <td style="width:25%">
+                    <label class="slds-form-element__label"> Search Transaction </label>
+                    <div aura:id="lookupField" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"  style="width: 100%;">
+                        <ui:inputText click="{!c.onfocus}"
+                                      updateOn="keyup"
+                                      keyup="{!c.transactionsBySearch}"
+                                      class="slds-lookup__search-input slds-input inputSize"
+                                      value="{!v.SearchKeyWordForTransaction}"
+                                      placeholder="Search Transaction.."/>
+                        <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                            <lightning:icon iconName="utility:search" size="x-small" alternativeText="icon"/>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+    </table>
+    
+    <div ><!--onmouseleave="{!c.onblur}"-->
+        <aura:if isTrue="{!v.listOfTransactions.length>0}">
+            <div class="slds-scrollable" style="height: 10rem;width : 100%">
+                <div class="slds-text-longform">
+                    <table class="slds-table slds-table_bordered  slds-no-row-hover">  
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th scope="col">
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Transaction Name">Transaction Name</div>
+                                </th> 
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Amount">Amount</div>
+                                </th>
+                                
+                                <th scope="col"> 
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.listOfTransactions}" var="trans">
+                                <tr>
+                                    <td>
+                                        <aura:if isTrue="{!trans.payableAmountToEdit == 0}">
+                                            
+                                        	<lightning:input  aura:id="actionCheckBox" disabled="true" type="checkbox" value="unfoldered" name="{!trans.transactionRecord.Id}" onchange="{!c.selectTransaction}" />
+                                        	<aura:set attribute="else">
+                                               <lightning:input  aura:id="actionCheckBox" disabled="false" type="checkbox" value="unfoldered" name="{!trans.transactionRecord.Id}" onchange="{!c.selectTransaction}" />
+                                            </aura:set>
+                                        </aura:if>
+                                    </td>
+                                    <td scope="row" data-label="Opportunity Name">
+                                        <div class="slds-truncate" title="Cloudhub"><a id="{!trans.transactionRecord.Id}" href="javascript:void(0);" onclick="{!c.navigateToTransaction}">{!trans.transactionRecord.Name}</a></div>
+                                    </td>
+                                    <td data-label="Account Name">
+                                        <div class="slds-truncate" title="Amount Left To Pay In This Transaction">
+                                        		<ui:outputCurrency aura:id="curr" value="{!trans.payableAmountToDisplay}" format="€##,##,###,###.00"/>
+                                        </div> 
+                                    </td>
+                                    <td data-label="Account Name">
+                                        <aura:if isTrue="{!trans.payableAmountToEdit == 0}">
+                                            <lightning:input name="{!trans.transactionRecord.Id}" formatter="currency" disabled="true" aura:Id="actionInput" type="number"  value="0" messageWhenRangeOverflow ="{!'Maximum amount to be select : '+trans.payableAmountToDisplay}" messageWhenRangeUnderflow="Minimum Amount is 0 ." min="0" max="{!trans.payableAmountToDisplay}" onblur="{!c.selectTransaction}"/><!--value="{!trans.payableAmountToEdit}"-->
+                                        	<aura:set attribute="else">
+                                               <lightning:input name="{!trans.transactionRecord.Id+':'+trans.payableAmountToEdit}" formatter="currency" disabled="false" aura:Id="actionInput" type="number"  value="0" messageWhenRangeOverflow ="{!'Maximum amount to be select : '+trans.payableAmountToDisplay}" messageWhenRangeUnderflow="Minimum Amount is 0 ." min="0" max="{!trans.payableAmountToDisplay}" onblur="{!c.selectTransaction}"/><!--value="{!trans.payableAmountToEdit}"-->
+                                            </aura:set>
+                                        </aura:if>
+                                    </td>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <aura:set attribute="else">
+                <div>{!v.MessageForTransactions}</div>
+            </aura:set>
+        </aura:if>
+    </div>
+</aura:component>

@@ -1,0 +1,21 @@
+.THIS .inputSize {
+    width:100%; 
+}
+.THIS .btnRt{
+    float: right !important;
+    margin-top: 7px !important;
+    margin-right: 10px !important;
+}
+.THIS .avoidCheckboxBorder label{
+    border: 0 !important;
+    background: 0 !important;
+    padding: 0 !important;
+    
+}
+.THIS slds-modal__container {
+    
+    width: 100% !important;
+    max-width: 60rem !important;
+    
+    min-width: 20rem !important;
+}
